@@ -53,7 +53,7 @@ async function awardAchievement(
   userId: number,
   code: string
 ) {
-  const ach = await client.query('SELECT id FROM achievements WHERE code = $1', [code]);
+  const ach = await client.query<{ id: number }>('SELECT id FROM achievements WHERE code = $1', [code]);
   if (ach.rows.length === 0) return;
   await client.query(
     `INSERT INTO user_achievements (user_id, achievement_id)
