@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { pool } from '../db/pool';
 
 export async function checkAndAwardAchievements(userId: number) {
@@ -49,16 +50,17 @@ export async function checkAndAwardAchievements(userId: number) {
 }
 
 async function awardAchievement(
-  client: { query: (a: string, b: unknown[]) => Promise<{ rows: { length: number } }> },
+  client: PoolClient,
   userId: number,
   code: string
 ) {
   const ach = await client.query<{ id: number }>('SELECT id FROM achievements WHERE code = $1', [code]);
-  if (ach.rows.length === 0) return;
+  const row = ach.rows[0];
+  if (!row) return;
   await client.query(
     `INSERT INTO user_achievements (user_id, achievement_id)
      VALUES ($1, $2)
      ON CONFLICT DO NOTHING`,
-    [userId, ach.rows[0].id]
+    [userId, row.id]
   );
 }
